@@ -56,6 +56,9 @@ def travel_cursor(x,y):
         next_y = current_y + int(float(dy*(step/steps))) + random.randint(0,3)
         ret = place_cursor(next_x, next_y)
         
+def left_click(x,y):
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,int(x),int(y),0,0)
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,int(x),int(y),0,0)
 
 def enemy_found():
     # Search in spiral pattern
@@ -74,14 +77,37 @@ def enemy_found():
             magnitude += 50
         travel_cursor(next_x, next_y)
         if (enemy_under_cursor()):
-            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,int(next_x),int(next_y),0,0)
-            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,int(next_x),int(next_y),0,0)
+            left_click(next_x,next_y)
             return True
 
+def tele_lumby():
+    place_cursor(1060, 700)
+    time.sleep(1)
+    left_click(1060/1.5, 700/1.5)
+    
+    time.sleep(1)
+    place_cursor(1100, 425)
+    time.sleep(1)
+    left_click(1100/1.5, 425/1.5)
+    
+def run_goblins():
+    for x in range(2):
+        place_cursor(1155, 53)
+        left_click(1155/1.5, 53/1.5)
+        time.sleep(45)
 
+time_start = time.time()
+start = True
 while(True):
     attacking = enemy_found()
     if(attacking):
         time.sleep(5)
+    if (time.time() - time_start > 30*60) or start == True:
+        time.sleep(30)
+        tele_lumby()
+        time.sleep(30)
+        run_goblins()
+        time_start = time.time()
+        start = False
     
     
