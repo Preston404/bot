@@ -1,6 +1,10 @@
+# TODO
+# Replace win32 stuff with pyautogui
+
 import numpy as nm
 import pytesseract
-import win32api, win32con
+#import win32api, win32con
+import pyautogui
 import time
 import random
 import math
