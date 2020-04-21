@@ -12,7 +12,12 @@ import pyscreenshot as ImageGrab
 
 center_x = 560
 center_y = 225
-stuff_to_click = "Coin Goblin spider At"
+stuff_to_click = "coin gob giant open"
+
+spells = [1040, 250]
+lumby_spell = [865,280]
+goblin_run = [900,100]
+
 
 def get_cursor_status_cap():
     return pyautogui.screenshot(region=(305, 65, 100, 20))
@@ -39,7 +44,7 @@ def enemy_under_cursor():
     cap = get_cursor_status_cap()
     string = get_color_string_from_cap(cap)
     for word in stuff_to_click.split():
-        if word in string:
+        if word.lower() in string.lower():
             print(string)
             return True
     if (len(string) > 0):
@@ -82,30 +87,30 @@ def enemy_found():
             return True
 
 def tele_lumby():
-    place_cursor(1060, 700)
+    place_cursor(spells[0], spells[1])
     time.sleep(1)
-    left_click(1060/1.5, 700/1.5)
+    left_click(spells[0], spells[1])
     
     time.sleep(1)
-    place_cursor(1100, 425)
+    place_cursor(lumby_spell[0], lumby_spell[1])
     time.sleep(1)
-    left_click(1100/1.5, 425/1.5)
+    left_click(lumby_spell[0], lumby_spell[1])
     
 def run_goblins():
     for x in range(2):
-        place_cursor(1155, 53)
-        left_click(1155/1.5, 53/1.5)
+        place_cursor(goblin_run[0], goblin_run[1])
+        left_click(goblin_run[0], goblin_run[1])
         time.sleep(45)
 
+
 time_start = time.time()
-start = True
+start = False
 while(True):
     attacking = enemy_found()
     if(attacking):
         time.sleep(5)
     if (time.time() - time_start > 30*60) or start == True:
-        continue
-        time.sleep(30)
+        time.sleep(15)
         tele_lumby()
         time.sleep(30)
         run_goblins()
