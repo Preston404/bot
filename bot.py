@@ -12,12 +12,13 @@ import pyscreenshot as ImageGrab
 
 center_x = 560
 center_y = 225
-stuff_to_click = "coin gob giant open"
+stuff_to_click = "min wolf coin gob giant bone body water earth"
 
 spells = [1040, 250]
 lumby_spell = [865,280]
 goblin_run = [900,100]
 
+bury_bones_counter = 0
 
 def get_cursor_status_cap():
     return pyautogui.screenshot(region=(305, 65, 100, 20))
@@ -55,32 +56,63 @@ def enemy_under_cursor():
 def left_click(x,y):
     pyautogui.click(x,y)
 
-def move_down():
+def move_down(times=5):
     tmp_x = center_x
     tmp_y = center_y+50
-    for x in range(5):
+    for x in range(times):
         pyautogui.moveTo(tmp_x, tmp_y,1);
         time.sleep(.1)
         left_click(tmp_x,tmp_y)
         time.sleep(1)
 
+def move_up(times=5):
+    tmp_x = center_x
+    tmp_y = center_y-30
+    for x in range(times):
+        pyautogui.moveTo(tmp_x, tmp_y,1);
+        time.sleep(.1)
+        left_click(tmp_x,tmp_y)
+        time.sleep(1)
+
+def click_inventory(string, clicks=1000):
+    inventory_icon = [940, 263.5]
+    place_cursor(inventory_icon[0], inventory_icon[1])
+    time.sleep(1)
+    left_click(inventory_icon[0], inventory_icon[1])
+    x1, y1 = 880, 290
+    for x in range(4):
+        for y in range(7):
+            new_x, new_y = x1+(x*40), y1+(y*37.5)
+            place_cursor(new_x, new_y)
+            time.sleep(1)
+            cap = get_cursor_status_cap()
+            item_found = get_color_string_from_cap(cap)
+            print(item_found.lower())
+            if (string.lower() in item_found.lower()):
+                left_click(new_x,new_y)
+                time.sleep(.5)
+
 def enemy_found():
+    global bury_bones_counter
     # Search in spiral pattern
     place_cursor(center_x,center_y)
     degrees_init = random.randint(0,360);
     degrees = degrees_init
     magnitude = 50
-    for i in range(300):
-        if (random.randint(0,65) == 1):
-            move_down()
-        next_x = center_x + (magnitude * math.cos(degrees*(3.14159/180)))*2
+    for i in range(75):
+        if (i % 50 == 0 and i != 0):
+            move_up(times=3)
+        bury_bones_counter = (bury_bones_counter+1)%500
+        if(bury_bones_counter == 450):
+            click_inventory("bone")
+        next_x = center_x + (magnitude * math.cos(degrees*(3.14159/180)))
         if degrees > 180:
             next_y = center_y + (magnitude * math.sin(degrees*(3.14159/180)))*.5
         else:
-            next_y = center_y + (magnitude * math.sin(degrees*(3.14159/180)))
+            next_y = center_y + (magnitude * math.sin(degrees*(3.14159/180)))*2
         degrees =  (degrees + 10) % 360
         if degrees == degrees_init:
-            magnitude += 50
+            magnitude += 25
         place_cursor(next_x, next_y)
         if (enemy_under_cursor()):
             left_click(next_x,next_y)
@@ -108,8 +140,8 @@ start = False
 while(True):
     attacking = enemy_found()
     if(attacking):
-        time.sleep(5)
-    if (time.time() - time_start > 30*60) or start == True:
+        time.sleep(20)
+    if (False and time.time() - time_start > 30*60) or start == True:
         time.sleep(15)
         tele_lumby()
         time.sleep(30)
