@@ -6,17 +6,35 @@ import pyautogui
 import time
 import random
 import math
+import sys
 
 import cv2
 import pyscreenshot as ImageGrab
 
-bot_start_time = time.time()
+global play_hours
+play_hours = 5
+global first_time
 
-wait_time = 25
+if len(sys.argv) > 1:
+    play_hours = int(sys.argv[1])
+
+bot_start_time = time.time()
+global logout_time
+logout_time = time.time()
+
+sayings = ["I am become death, destroyer of fleshcrawlers!",
+           "Die filthy creature!",
+           "My ancestors smile upon me, can you say the same?",
+           "Rot in hell vile abomination!",
+           "I will have my vengence!",
+           "Deus Vult!",
+           "I will cleanse the earth of these filthy beings!"]
+
+wait_time = 10
 center_x = 560
 center_y = 225
-enemies = " min wolf "
-loot = " coin arr rune tin copp min"
+enemies = " min wolf gob spi rat"
+loot = " coin arr rune tin cop min zom gob "
 stuff_to_click = loot
 stuff_to_click += enemies
 
@@ -118,32 +136,6 @@ def click_inventory(string, clicks=1000):
                 left_click(new_x,new_y)
                 time.sleep(.5)
 
-def enemy_found():
-    global bury_bones_counter
-    # Search in spiral pattern
-    place_cursor(center_x,center_y)
-    degrees_init = random.randint(0,360);
-    degrees = degrees_init
-    magnitude = 50
-    for i in range(75):
-        if (i % 50 == 0 and i != 0):
-            move_right(times=3)
-        #bury_bones_counter = (bury_bones_counter+1)%500
-        #if(bury_bones_counter == 450):
-        #    click_inventory("bone")
-        next_x = center_x + (magnitude * math.cos(degrees*(3.14159/180)))
-        if degrees > 180:
-            next_y = center_y + (magnitude * math.sin(degrees*(3.14159/180)))*.5
-        else:
-            next_y = center_y + (magnitude * math.sin(degrees*(3.14159/180)))*2
-        degrees =  (degrees + 10) % 360
-        if degrees == degrees_init:
-            magnitude += 25
-        place_cursor(next_x, next_y)
-        if (enemy_under_cursor()):
-            left_click(next_x,next_y)
-            return True
-
 def tele_lumby():
     place_cursor(spells[0], spells[1])
     time.sleep(1)
@@ -160,37 +152,255 @@ def run_goblins():
         left_click(goblin_run[0], goblin_run[1])
         time.sleep(45)
 
-def check_drop():
+def handle_loot_under_cursor(x,y):
+    global wait_time
+    left_click(x, y)
+    time.sleep(wait_time)
+    return
+
+def click_mini_map():
+    x = 943
+    y = 148
+    place_cursor(x, y)
+    left_click(x,y)
+
+def log_out():
+    x = 945
+    y = 550
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(1)
+    
+    # If World switcher is active
+    x = 1025
+    y = 512
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(2)
+
+    # IF world switcher is not active
+    x = 950
+    y = 500
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(2)
+
+
+def log_in():
+    x = 750
+    y = 360
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(3)
+    
+    login = "preston_stephens@yahoo.com\tmypassword0\n"
+    pyautogui.write(login)
+    time.sleep(10)
+    
+    x = 650
+    y = 400
+    place_cursor(x, y)
+    left_click(x,y)
+
+    time.sleep(3)
+    pyautogui.keyDown('up')
+    time.sleep(5)
+    pyautogui.keyUp('up')
+
+    time.sleep(1)
+    #point_south()
+
+def point_south():
+    time.sleep(3)
+    pyautogui.keyDown('right')
+    time.sleep(1.75)
+    pyautogui.keyUp('right')
+
+
+def check_drop(times=5):
     feet_x = center_x
     feet_y = center_y+15
-    left = [feet_x-23, feet_y]
-    right = [feet_x+23, feet_y]
-    up = [feet_x, feet_y-10]
-    down = [feet_x, feet_y+10]
-    positions = [left, right, up, down]
-    for pos in positions:
-        place_cursor(pos[0], pos[1])
-        if(loot_under_cursor()):
-            left_click(pos[0], pos[1])
-            time.sleep(wait_time)
-            check_drop()
+    time_between_caps = 0.5
+
+    diff_x = 23
+    diff_y = 10
+    top_left_x = feet_x - 2*diff_x
+    top_left_y = feet_y - 2*diff_y
+    near_positions = [[feet_x, feet_y], [feet_x+diff_x, feet_y],[feet_x-diff_x, feet_y],[feet_x, feet_y+diff_y],[feet_x, feet_y-diff_y]]
+    for t in range(times):
+        # Search near character
+        for position in near_positions:
+            place_cursor(position[0], position[1])
+            if(loot_under_cursor()):
+                handle_loot_under_cursor(position[0], position[1])
+                return
+            time.sleep(time_between_caps)
+    
+    for t in range(times):
+        # Search grid
+        for x in range(5):
+            for y in range(3):
+                if(x == 2 and y == 1):
+                    positions = [[feet_x, feet_y-diff_y], [feet_x, feet_y+diff_y]]
+                    for pos in positions:
+                        place_cursor(pos[0], pos[1])
+                        if(loot_under_cursor()):    
+                            handle_loot_under_cursor(pos[0], pos[1])
+                            return
+                pos = [top_left_x + (x*diff_x), top_left_y + (2*y*diff_y)]
+                place_cursor(pos[0], pos[1])
+                if(loot_under_cursor()):
+                    handle_loot_under_cursor(pos[0], pos[1])
+                    return
+                time.sleep(time_between_caps)
+    click_mini_map()
+
+def new_logout_time():
+    return time.time() + 60*30
+    return time.time() + 3600 + (random.randint(0,100)/100)* 3600*2
+
+def new_reset_time():
+    return time.time() + 3*60
+
+def say_stuff():
+    string = sayings[random.randint(0,len(sayings)-1)]
+    pyautogui.write("/  \n")
+    #pyautogui.write('/' + string + "\n")
+
+def reset_flesh_crawlers_2():
+    long_time = 10
+
+    x = 1025
+    y = 512
+    place_cursor(x, y)
+    #left_click(x,y)
+    time.sleep(long_time*2)
 
 
-time_start = time.time()
-start = False
+def reset_flesh_crawlers():
+    short_time = 3
+    long_time = 10
+    
+    # Go to gate
+    x = 940
+    y = 200
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(long_time)
+
+    # Open inner gate
+    x = 550
+    y = 250
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time)
+    
+    # Open outer gate
+    x = 550
+    y = 310
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time*2)
+
+    # Run down hallway
+    x = 1000
+    y = 150
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(long_time)
+
+    # Exit 2nd inner gate
+    x = 600
+    y = 200
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time)
+
+    # Exit 2nd outer gate
+    x = 650
+    y = 200
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time*2)
+
+    # Go Up to flesh crawler
+    x = 942
+    y = 105
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(long_time*2)
+    
+    keep_alive(seconds=60*10)
+
+    # Go up to gate
+    x = 950
+    y = 100
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(long_time)
+
+    # Enter Up through gate
+    x = 550
+    y = 200
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time)
+
+    # Enter up through gate again
+    x = 550
+    y = 150
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time*2)
+
+    global logout_time
+    if(time.time() > logout_time):
+        log_out()
+        log_in()
+        logout_time = new_logout_time()
+
+    # Run to back gate
+    x = 900
+    y = 125
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(long_time)
+
+     # Open outer gate
+    x = 525
+    y = 225
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time)
+
+     # Open inner gate
+    x = 475
+    y = 225
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(short_time*2)
+
+     # Run to position
+    x = 925
+    y = 200
+    place_cursor(x, y)
+    left_click(x,y)
+    time.sleep(long_time)
+    #keep_alive(seconds=10*60)
+
+def keep_alive(seconds=60):
+    for x in range(seconds):
+        time.sleep(1)
+        if(random.randint(0,5) == 1):
+            say_stuff()
+            click_mini_map()
+
+logout_time = new_logout_time()
 while(True):
-    check_drop()
-    if time.time() - bot_start_time > 60*60*5: # Shut down the bot after 4 hours
-        exit(0)
-    attacking = enemy_found()
-    if(attacking):
-        time.sleep(wait_time)
-    if (False and time.time() - time_start > 30*60) or start == True:
-        time.sleep(15)
-        tele_lumby()
-        time.sleep(30)
-        run_goblins()
-        time_start = time.time()
-        start = False
+    time.sleep(3)
+    reset_flesh_crawlers()
+    print("{} seconds left".format(-(time.time() - bot_start_time) + 60*60*play_hours))
+    if time.time() - bot_start_time > 60*60*play_hours: 
+        exit(0) 
     
     
