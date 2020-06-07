@@ -7,9 +7,11 @@ import time
 import random
 import math
 import sys
+import subprocess
 
 import cv2
 import pyscreenshot as ImageGrab
+
 
 global play_hours
 play_hours = 5
@@ -43,6 +45,9 @@ lumby_spell = [865,280]
 goblin_run = [900,100]
 
 bury_bones_counter = 0
+
+def kill_epiphany():
+    subprocess.call(["sudo pkill -9 -f epiphany"], shell=True)
 
 def get_cursor_status_cap():
     return pyautogui.screenshot(region=(305, 65, 200, 20))
@@ -165,6 +170,9 @@ def click_mini_map():
     left_click(x,y)
 
 def log_out():
+    kill_epiphany()
+    time.sleep(3)
+
     x = 945
     y = 550
     place_cursor(x, y)
@@ -187,6 +195,16 @@ def log_out():
 
 
 def log_in():
+    kill_epiphany()
+    time.sleep(3)
+
+    # Sometimes we can't type anything
+    # This is a workaround
+    pyautogui.hotkey('alt', 'tab')
+    time.sleep(1)
+    pyautogui.hotkey('alt', 'tab')
+    time.sleep(1)
+
     x = 750
     y = 360
     place_cursor(x, y)
@@ -256,7 +274,7 @@ def check_drop(times=5):
     click_mini_map()
 
 def new_logout_time():
-    return time.time() + 60*30
+    return time.time() + 60*45
     return time.time() + 3600 + (random.randint(0,100)/100)* 3600*2
 
 def new_reset_time():
